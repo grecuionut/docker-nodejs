@@ -24,9 +24,10 @@ Vagrant.configure(2) do |config|
       sudo yum -y install nodejs npm --enablerepo=epel
       sudo mkdir /data
       cd /data
+      sudo chown vagrant:vagrant -R /data
       sudo npm init -y
       sudo npm install express --save
     SHELL
-    centos.vm.provision "file", source: "./index.js", destination: "/data/"
+    centos.vm.provision "file", source: "./index.js", destination: "/data/index.js"
   end
 end

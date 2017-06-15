@@ -7,13 +7,13 @@ Vagrant.configure(2) do |config|
   config.hostmanager.ignore_private_ip = false
   config.hostmanager.include_offline = true
 
-  config.vm.define "centos" do |centos|
+  config.vm.define "node1" do |node1|
     # centos
-    centos.vm.synced_folder ".", "/vagrant", type: "virtualbox"
-    centos.vm.box = "centos/7"
-    centos.vm.hostname = "centos"
-    centos.vm.network "public_network", use_dhcp_assigned_default_route: true
-    centos.vm.provision "shell", inline: <<-SHELL
+    node1.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+    node1.vm.box = "centos/7"
+    node1.vm.hostname = "node1"
+    node1.vm.network "public_network", use_dhcp_assigned_default_route: true
+    node1.vm.provision "shell", inline: <<-SHELL
       sudo yum -y update
       sudo yum -y install yum-utils device-mapper-persistent-data lvm2
       sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -28,6 +28,24 @@ Vagrant.configure(2) do |config|
       sudo npm init -y
       sudo npm install express --save
     SHELL
-    centos.vm.provision "file", source: "./index.js", destination: "/data/index.js"
+    node1.vm.provision "file", source: "./index.js", destination: "/data/index.js"
   end
+
+  (2..3).each do |i|
+    config.vm.define "node#{i}" do |node|
+      node.vm.box = "centos/7"
+      node.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+      node.vm.hostname = "node#{i}"
+      node.vm.network "public_network", use_dhcp_assigned_default_route: true
+      node.vm.provision "shell", inline: <<-SHELL
+        sudo yum update -y
+        sudo yum -y install yum-utils device-mapper-persistent-data lvm2
+        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        sudo yum-config-manager --enable docker-ce-edge
+        sudo yum makecache fast
+        sudo yum -y install docker-ce
+      SHELL
+    end
+  end
+
 end
